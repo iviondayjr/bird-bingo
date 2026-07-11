@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#fffdf8">
+<title>Bird Bingo Caller</title>
+<style>
+:root{--bg:#f5f0e7;--paper:#fffdf8;--ink:#252525;--red:#a83b32;--gold:#d9a514;--gold2:#efc34c;--shadow:0 12px 32px rgba(0,0,0,.14);--radius:22px}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top,#fff8e8 0,#f5f0e7 48%,#e8e1d4 100%);color:var(--ink)}
+body{padding:0 0 32px}
+button{font:inherit}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:rgba(255,253,248,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,0,0,.08)}
+.brand{font-weight:900;letter-spacing:.12em;color:var(--red);font-size:clamp(17px,4vw,24px);white-space:nowrap}
+.top-actions{display:flex;gap:8px}.icon-btn,.reset-btn{border:0;border-radius:14px;padding:11px 14px;font-weight:800;cursor:pointer}.icon-btn{background:#eee8dc;color:#332f29}.reset-btn{background:#2f2d2a;color:#fff}
+.app{width:min(720px,100%);margin:0 auto;padding:18px 14px 24px}.status-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:4px 2px 14px}.pill{background:rgba(255,255,255,.75);border:1px solid rgba(0,0,0,.08);padding:9px 12px;border-radius:999px;font-size:14px;font-weight:800}.pill strong{color:var(--red)}
+.stage{background:rgba(255,253,248,.9);border:1px solid rgba(0,0,0,.08);border-radius:28px;padding:18px;box-shadow:var(--shadow)}
+.card-wrap{min-height:390px;display:grid;place-items:center}.bird-card{width:min(100%,340px);aspect-ratio:1/1.03;background:#fff;border:5px solid var(--gold);border-radius:6px;overflow:hidden;box-shadow:0 12px 24px rgba(0,0,0,.12);display:none;animation:pop .28s ease-out}.bird-card.show{display:block}.bird-card img{width:100%;height:100%;object-fit:cover;display:block}.empty-state{text-align:center;padding:34px 14px}.empty-icon{font-size:72px;line-height:1}.empty-state h1{margin:14px 0 8px;font-size:clamp(28px,8vw,44px);color:var(--red)}.empty-state p{margin:0;color:#625d55;font-size:17px;line-height:1.45}
+.current-name{text-align:center;font-size:clamp(23px,6vw,34px);font-weight:900;margin:16px 0 4px;color:var(--red);min-height:42px}.draw-btn{width:100%;border:0;border-radius:18px;padding:18px 20px;margin-top:14px;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#27200d;font-size:clamp(22px,6vw,30px);font-weight:950;letter-spacing:.01em;box-shadow:0 7px 0 #9f7600,0 14px 24px rgba(119,85,0,.22);cursor:pointer;touch-action:manipulation}.draw-btn:active{transform:translateY(4px);box-shadow:0 3px 0 #9f7600,0 8px 16px rgba(119,85,0,.18)}.draw-btn:disabled{background:#d8d2c7;color:#777;box-shadow:none;cursor:not-allowed}.game-over{display:none;text-align:center;margin-top:14px;padding:14px;border-radius:16px;background:#efe6d0;font-weight:900;color:#6b4d00}.game-over.show{display:block}
+.drawer{position:fixed;inset:0;z-index:40;pointer-events:none}.drawer.open{pointer-events:auto}.scrim{position:absolute;inset:0;background:rgba(0,0,0,.48);opacity:0;transition:.2s}.drawer.open .scrim{opacity:1}.panel{position:absolute;right:0;top:0;bottom:0;width:min(92vw,430px);background:var(--paper);transform:translateX(102%);transition:.24s ease;display:flex;flex-direction:column;box-shadow:-12px 0 30px rgba(0,0,0,.22)}.drawer.open .panel{transform:translateX(0)}.panel-head{display:flex;align-items:center;justify-content:space-between;padding:18px;border-bottom:1px solid rgba(0,0,0,.1)}.panel-head h2{margin:0;color:var(--red)}.close-btn{border:0;background:#eee8dc;border-radius:12px;padding:10px 13px;font-weight:900}.history-list{overflow:auto;padding:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.history-empty{grid-column:1/-1;text-align:center;color:#777;padding:36px 12px}.history-item{border:1px solid rgba(0,0,0,.1);background:#fff;border-radius:14px;padding:8px;text-align:left;cursor:pointer}.history-item img{width:100%;aspect-ratio:1/1.03;object-fit:cover;border:2px solid var(--gold);border-radius:5px;display:block}.history-item span{display:block;font-size:13px;font-weight:850;padding:8px 3px 2px;line-height:1.2}.draw-number{color:#7b746c;font-size:11px!important;font-weight:700!important;padding-top:0!important}
+.modal{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.76);display:none;place-items:center;padding:18px}.modal.open{display:grid}.modal-card{width:min(94vw,520px);background:#fffdf8;border-radius:20px;padding:14px;box-shadow:var(--shadow)}.modal-card img{width:100%;display:block;border:4px solid var(--gold);border-radius:6px}.modal-name{text-align:center;font-size:26px;font-weight:950;color:var(--red);margin:12px 0 4px}.modal-close{width:100%;border:0;border-radius:13px;padding:13px;margin-top:10px;background:#2f2d2a;color:#fff;font-weight:900}
+@keyframes pop{0%{transform:scale(.88);opacity:0}100%{transform:scale(1);opacity:1}}
+@media (max-width:420px){.brand{letter-spacing:.07em}.topbar{padding:10px}.icon-btn,.reset-btn{padding:10px 11px}.stage{padding:13px}.card-wrap{min-height:340px}.history-list{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">BIRD BINGO</div>
+  <div class="top-actions">
+    <button id="historyBtn" class="icon-btn" aria-label="View drawn birds">Drawn <span id="historyBadge">0</span></button>
+    <button id="resetBtn" class="reset-btn">Reset</button>
+  </div>
+</header>
+<main class="app">
+  <div class="status-row">
+    <div class="pill"><strong id="remainingCount">64</strong> remaining</div>
+    <div class="pill"><strong id="drawnCount">0</strong> drawn</div>
+  </div>
+  <section class="stage">
+    <div class="card-wrap">
+      <div id="emptyState" class="empty-state">
+        <div class="empty-icon">🦜</div>
+        <h1>Ready to Play?</h1>
+        <p>Tap the button to draw one random bird from the pool.</p>
+      </div>
+      <div id="currentCard" class="bird-card"><img id="currentImg" alt=""></div>
+    </div>
+    <div id="currentName" class="current-name"></div>
+    <button id="drawBtn" class="draw-btn">Draw a Bird</button>
+    <div id="gameOver" class="game-over">Game over — all 64 birds have been drawn.</div>
+  </section>
+</main>
+<div id="drawer" class="drawer" aria-hidden="true">
+  <div id="scrim" class="scrim"></div>
+  <aside class="panel">
+    <div class="panel-head"><h2>Drawn Birds</h2><button id="closeDrawer" class="close-btn">Close</button></div>
+    <div id="historyList" class="history-list"></div>
+  </aside>
+</div>
+<div id="modal" class="modal" role="dialog" aria-modal="true">
+  <div class="modal-card"><img id="modalImg" alt=""><div id="modalName" class="modal-name"></div><button id="modalClose" class="modal-close">Close</button></div>
+</div>
+<script>
+const birds = [{"id": 0, "name": "American Kestrel", "file": "images/01_01_american_kestrel.jpg"}, {"id": 1, "name": "Andean Cock-of-the-rock", "file": "images/01_02_andean_cock_of_the_rock.jpg"}, {"id": 2, "name": "Atlantic Puffin", "file": "images/01_03_atlantic_puffin.jpg"}, {"id": 3, "name": "Bald Eagle", "file": "images/01_04_bald_eagle.jpg"}, {"id": 4, "name": "Barn Owl", "file": "images/01_05_barn_owl.jpg"}, {"id": 5, "name": "Blue Coua", "file": "images/01_06_blue_coua.jpg"}, {"id": 6, "name": "Blue-footed Booby", "file": "images/01_07_blue_footed_booby.jpg"}, {"id": 7, "name": "Blue Jay", "file": "images/01_08_blue_jay.jpg"}, {"id": 8, "name": "Blue Tit", "file": "images/02_01_blue_tit.jpg"}, {"id": 9, "name": "Blue-winged Pitta", "file": "images/02_02_blue_winged_pitta.jpg"}, {"id": 10, "name": "Bohemian Waxwing", "file": "images/02_03_bohemian_waxwing.jpg"}, {"id": 11, "name": "Brown Kiwi", "file": "images/02_04_brown_kiwi.jpg"}, {"id": 12, "name": "Brown Pelican", "file": "images/02_05_brown_pelican.jpg"}, {"id": 13, "name": "Bullfinch", "file": "images/02_06_bullfinch.jpg"}, {"id": 14, "name": "California Condor", "file": "images/02_07_california_condor.jpg"}, {"id": 15, "name": "Canada Goose", "file": "images/02_08_canada_goose.jpg"}, {"id": 16, "name": "Common Cuckoo", "file": "images/03_01_common_cuckoo.jpg"}, {"id": 17, "name": "Common Kingfisher", "file": "images/03_02_common_kingfisher.jpg"}, {"id": 18, "name": "Emperor Penguin", "file": "images/03_03_emperor_penguin.jpg"}, {"id": 19, "name": "Emu", "file": "images/03_04_emu.jpg"}, {"id": 20, "name": "Eurasian Blackbird", "file": "images/03_05_eurasian_blackbird.jpg"}, {"id": 21, "name": "European Bee-eater", "file": "images/03_06_european_bee_eater.jpg"}, {"id": 22, "name": "European Goldfinch", "file": "images/03_07_european_goldfinch.jpg"}, {"id": 23, "name": "European Robin", "file": "images/03_08_european_robin.jpg"}, {"id": 24, "name": "European Starling", "file": "images/04_01_european_starling.jpg"}, {"id": 25, "name": "Golden Oriole", "file": "images/04_02_golden_oriole.jpg"}, {"id": 26, "name": "Golden Pheasant", "file": "images/04_03_golden_pheasant.jpg"}, {"id": 27, "name": "Gouldian Finch", "file": "images/04_04_gouldian_finch.jpg"}, {"id": 28, "name": "Great Bustard", "file": "images/04_05_great_bustard.jpg"}, {"id": 29, "name": "Greater Flamingo", "file": "images/04_06_greater_flamingo.jpg"}, {"id": 30, "name": "Grey Heron", "file": "images/04_07_grey_heron.jpg"}, {"id": 31, "name": "Herring Gull", "file": "images/04_08_herring_gull.jpg"}, {"id": 32, "name": "Hoopoe", "file": "images/05_01_hoopoe.jpg"}, {"id": 33, "name": "House Martin", "file": "images/05_02_house_martin.jpg"}, {"id": 34, "name": "House Sparrow", "file": "images/05_03_house_sparrow.jpg"}, {"id": 35, "name": "Laughing Kookaburra", "file": "images/05_04_laughing_kookaburra.jpg"}, {"id": 36, "name": "Lilac-breasted Roller", "file": "images/05_05_lilac_breasted_roller.jpg"}, {"id": 37, "name": "Magnificent Bird Of Paradise", "file": "images/05_06_magnificent_bird_of_paradise.jpg"}, {"id": 38, "name": "Magnificent Frigatebird", "file": "images/05_07_magnificent_frigatebird.jpg"}, {"id": 39, "name": "Magpie", "file": "images/05_08_magpie.jpg"}, {"id": 40, "name": "Mallard", "file": "images/06_01_mallard.jpg"}, {"id": 41, "name": "Mandarin Duck", "file": "images/06_02_mandarin_duck.jpg"}, {"id": 42, "name": "Mute Swan", "file": "images/06_03_mute_swan.jpg"}, {"id": 43, "name": "Northern Cardinal", "file": "images/06_04_northern_cardinal.jpg"}, {"id": 44, "name": "Northern Mockingbird", "file": "images/06_05_northern_mockingbird.jpg"}, {"id": 45, "name": "Ostrich", "file": "images/06_06_ostrich.jpg"}, {"id": 46, "name": "Pied Wagtail", "file": "images/06_07_pied_wagtail.jpg"}, {"id": 47, "name": "Red-billed Oxpecker", "file": "images/06_08_red_billed_oxpecker.jpg"}, {"id": 48, "name": "Red Grouse", "file": "images/07_01_red_grouse.jpg"}, {"id": 49, "name": "Red-headed Woodpecker", "file": "images/07_02_red_headed_woodpecker.jpg"}, {"id": 50, "name": "Red Junglefowl", "file": "images/07_03_red_junglefowl.jpg"}, {"id": 51, "name": "Rhinoceros Hornbill", "file": "images/07_04_rhinoceros_hornbill.jpg"}, {"id": 52, "name": "Ruby-throated Hummingbird", "file": "images/07_05_ruby_throated_hummingbird.jpg"}, {"id": 53, "name": "Saddle-billed Stork", "file": "images/07_06_saddle_billed_stork.jpg"}, {"id": 54, "name": "Scarlet Ibis", "file": "images/07_07_scarlet_ibis.jpg"}, {"id": 55, "name": "Scarlet Macaw", "file": "images/07_08_scarlet_macaw.jpg"}, {"id": 56, "name": "Shoebill", "file": "images/08_01_shoebill.jpg"}, {"id": 57, "name": "Splendid Fairy-wren", "file": "images/08_02_splendid_fairywren.jpg"}, {"id": 58, "name": "Superb Lyrebird", "file": "images/08_03_superb_lyrebird.jpg"}, {"id": 59, "name": "Toco Toucan", "file": "images/08_04_toco_toucan.jpg"}, {"id": 60, "name": "Turtle Dove", "file": "images/08_05_turtle_dove.jpg"}, {"id": 61, "name": "Vulturine Guineafowl", "file": "images/08_06_vulturine_guineafowl.jpg"}, {"id": 62, "name": "Wandering Albatross", "file": "images/08_07_wandering_albatross.jpg"}, {"id": 63, "name": "Wild Turkey", "file": "images/08_08_wild_turkey.jpg"}];
+const STORAGE_KEY = 'birdBingoStateV1';
+let state = loadState();
+
+const remainingEl = document.getElementById('remainingCount');
+const drawnEl = document.getElementById('drawnCount');
+const currentCard = document.getElementById('currentCard');
+const currentImg = document.getElementById('currentImg');
+const currentName = document.getElementById('currentName');
+const emptyState = document.getElementById('emptyState');
+const drawBtn = document.getElementById('drawBtn');
+const gameOver = document.getElementById('gameOver');
+const historyList = document.getElementById('historyList');
+const historyBadge = document.getElementById('historyBadge');
+const drawer = document.getElementById('drawer');
+const modal = document.getElementById('modal');
+const modalImg = document.getElementById('modalImg');
+const modalName = document.getElementById('modalName');
+
+function freshState(){ return { remaining: birds.map(b=>b.id), drawn: [], current: null }; }
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw) return freshState();
+    const parsed=JSON.parse(raw);
+    if(!Array.isArray(parsed.remaining)||!Array.isArray(parsed.drawn)) return freshState();
+    return parsed;
+  }catch{return freshState();}
+}
+function saveState(){ localStorage.setItem(STORAGE_KEY,JSON.stringify(state)); }
+function randomIndex(max){
+  if(window.crypto?.getRandomValues){
+    const a=new Uint32Array(1); window.crypto.getRandomValues(a); return a[0]%max;
+  }
+  return Math.floor(Math.random()*max);
+}
+function drawBird(){
+  if(state.remaining.length===0) return;
+  const idx=randomIndex(state.remaining.length);
+  const id=state.remaining.splice(idx,1)[0];
+  state.drawn.unshift(id); state.current=id; saveState(); render();
+  if(navigator.vibrate) navigator.vibrate(35);
+}
+function resetGame(){
+  const ok=state.drawn.length===0 || confirm('Reset the game and return all birds to the pool?');
+  if(!ok) return;
+  state=freshState(); saveState(); closeDrawer(); render();
+}
+function render(){
+  remainingEl.textContent=state.remaining.length;
+  drawnEl.textContent=state.drawn.length;
+  historyBadge.textContent=state.drawn.length;
+  if(state.current===null){
+    currentCard.classList.remove('show'); emptyState.style.display='block'; currentName.textContent='';
+  }else{
+    const b=birds[state.current]; currentImg.src=b.file; currentImg.alt=b.name; currentName.textContent=b.name;
+    emptyState.style.display='none'; currentCard.classList.add('show');
+  }
+  const done=state.remaining.length===0;
+  drawBtn.disabled=done; drawBtn.textContent=done?'All Birds Drawn':'Draw a Bird'; gameOver.classList.toggle('show',done);
+  historyList.innerHTML='';
+  if(state.drawn.length===0){
+    historyList.innerHTML='<div class="history-empty">No birds have been drawn yet.</div>';
+  } else {
+    state.drawn.forEach((id,reverseIndex)=>{
+      const b=birds[id];
+      const number=state.drawn.length-reverseIndex;
+      const btn=document.createElement('button'); btn.className='history-item';
+      btn.innerHTML=`<img src="${b.file}" alt="${b.name}"><span>${b.name}</span><span class="draw-number">Draw #${number}</span>`;
+      btn.addEventListener('click',()=>openModal(b)); historyList.appendChild(btn);
+    });
+  }
+}
+function openDrawer(){drawer.classList.add('open');drawer.setAttribute('aria-hidden','false');}
+function closeDrawer(){drawer.classList.remove('open');drawer.setAttribute('aria-hidden','true');}
+function openModal(b){modalImg.src=b.file;modalImg.alt=b.name;modalName.textContent=b.name;modal.classList.add('open');}
+function closeModal(){modal.classList.remove('open');}
+
+document.getElementById('drawBtn').addEventListener('click',drawBird);
+document.getElementById('historyBtn').addEventListener('click',openDrawer);
+document.getElementById('closeDrawer').addEventListener('click',closeDrawer);
+document.getElementById('scrim').addEventListener('click',closeDrawer);
+document.getElementById('resetBtn').addEventListener('click',resetGame);
+document.getElementById('modalClose').addEventListener('click',closeModal);
+modal.addEventListener('click',e=>{if(e.target===modal)closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDrawer();closeModal();}});
+render();
+</script>
+</body>
+</html>
